@@ -1,0 +1,18 @@
+data:
+  database: ps
+  host: localhost
+  port: 5432
+  user: postgres
+  password: 123456
+
+base_filter:
+  ob_window: 100
+  min_price: 1.0
+  min_volume: 10000
+
+strategy:
+  bigspike:
+    ob_window: 50
+    rule_3_volume: 300000
+    rule_8_horizon: 3
+    rule_8_volume_multiple: 3
