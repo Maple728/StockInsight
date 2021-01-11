@@ -2,9 +2,10 @@ import numpy as np
 import pandas as pd
 
 
+# ---------------------------- Standard Indicator -----------------------------
 def moving_average(data_array, cur_idx, window=14):
     """
-    Moving Average of data_array in observation window (cur_idx - window, cur_idx].
+    Moving Average (MA) of data_array in observation window (cur_idx - window, cur_idx].
     Args:
         data_array: list or ndarray.
             Full data list.
@@ -20,7 +21,7 @@ def moving_average(data_array, cur_idx, window=14):
 
 def exp_moving_average(data_array, cur_idx, window=14):
     """
-    Exponential Moving Average of data_array in observation window (cur_idx - window, cur_idx].
+    Exponential Moving Average (EMA) of data_array in observation window (cur_idx - window, cur_idx].
     Args:
         data_array: list or ndarray.
             Full data list.
@@ -42,66 +43,75 @@ def exp_moving_average(data_array, cur_idx, window=14):
     return ema
 
 
-def TR(quotes, index):
-    pre_close = quotes.iloc[index - 1].close
-    quote = quotes.iloc[index]
+def true_range(quotes, cur_idx):
+    """
+    True Range indicator (TR), is used to indicate the true range of the trading day.
+    Args:
+        quotes: DataFrame.
+            A dataframe contains the <quote_date, open, high, low, close>, and be sorted by quote_date ascending.
+        cur_idx: int > 0.
+            The current index.
+
+    Returns:
+        A scalar.
+    """
+    pre_close = quotes.iloc[cur_idx - 1].close
+    quote = quotes.iloc[cur_idx]
     return max(quote.high - quote.low, abs(quote.high - pre_close), abs(quote.low - pre_close))
 
 
-def ATR(quotes, index, period=14):
-    '''Include index itself'''
-    tr_list = [TR(quotes, i) for i in range(index - period + 1, index + 1)]
+def average_true_range(quotes, cur_idx, window=14):
+    """
+    Average True Range (ATR), is used to simply indicate the degree of price volatility.
+    Args:
+        quotes: DataFrame.
+            A dataframe contains the <quote_date, open, high, low, close>, and be sorted by quote_date ascending.
+        cur_idx: int > 0.
+            The current index.
+        window: int > 0.
+            The size of observation window.
+
+    Returns:
+        A scalar.
+    """
+    tr_list = [true_range(quotes, i) for i in range(cur_idx - window + 1, cur_idx + 1)]
     return np.mean(tr_list)
 
 
-def NP(quotes, index):
-    quote = quotes.iloc[index]
+def norm_price(quotes, cur_idx):
+    """
+    Normalized Price (NP).
+    Args:
+        quotes: DataFrame.
+            A dataframe contains the <quote_date, open, high, low, close>, and be sorted by quote_date ascending.
+        cur_idx: int > 0.
+            The current index.
+
+    Returns:
+        A scalar.
+    """
+    quote = quotes.iloc[cur_idx]
     return (quote.high + quote.low + quote.close) / 3
 
 
+def money_flow_index(quotes, cur_idx, window=14):
+    """
+    Average True Range (ATR), is used to simply indicate the degree of price volatility.
+    Args:
+        quotes: DataFrame.
+            A dataframe contains the <quote_date, open, high, low, close>, and be sorted by quote_date ascending.
+        cur_idx: int > 0.
+            The current index.
+        window: int > 0.
+            The size of observation window.
 
-def EMA(data_list, index, period=14):
-    if index < period:
-        return None
-
-    data_list = np.array(data_list)
-    multiplier = 2 / (period + 1)
-    prev_ema = np.mean(data_list[0: period])
-    cur_ema = 0
-    for i in range(period, index + 1):
-        cur_ema = (data_list[i] - prev_ema) * multiplier + prev_ema
-        prev_ema = cur_ema
-    return cur_ema
-
-
-def EMA_LIST(data_list, period=14):
-    ''' Return a list of EMA '''
-    if len(data_list) < period:
-        return None
-
-    data_list = np.array(data_list)
-    multiplier = 2 / (period + 1)
-
-    # init ema list
-    ema_list = [0] * len(data_list)
-    ema_list[period - 1] = np.mean(data_list[0: period])
-
-    for i in range(period, len(data_list)):
-        ema_list[i] = (data_list[i] - ema_list[i - 1]) * multiplier + ema_list[i - 1]
-
-    return np.array(ema_list)
-
-
-def MFI(quotes, index, period=14):
-    ''' Money Flow Index'''
-    if index < period:
-        return None
-
+    Returns:
+        A scalar.
+    """
     pos_mf = 0.0
     neg_mf = 0.0
 
-    prev_np = NP(quotes, index - period)
-    # print('NP:', prev_np, index)
+    prev_np = NP(quotes, cur_idx - window)
     for i in range(index - period + 1, index + 1):
         cur_np = NP(quotes, i)
         if prev_np < cur_np:
@@ -117,6 +127,31 @@ def MFI(quotes, index, period=14):
         return 100
     else:
         return 100 - 100 / (1 + pos_mf / neg_mf)
+
+
+# ---------------------------------- Customize Indicator ----------------------------
+def angular(quotes, cur_idx, side_window=5):
+    """
+    Check whether the current quote is the angular point, that is, it's high price is the highest price or low price is
+    the lowest price in the observation window.
+    Args:
+        quotes: DataFrame.
+            A dataframe contains the <quote_date, open, high, low, close>, and be sorted by quote_date ascending.
+        cur_idx: int > 0.
+            The current index.
+        side_window: int, default 5.
+            The past and future window size at the current index.
+
+    Returns:
+        True if it's angular point, otherwise False.
+    """
+
+    ob_quotes = quotes.iloc[cur_idx - side_window: cur_idx + side_window]
+
+    if quotes.iloc[cur_idx].high >= np.max(ob_quotes.high) or quotes.iloc[cur_idx].low <= np.min(ob_quotes.low):
+        return True
+    else:
+        return False
 
 
 def MI(quotes, index, period=25):
@@ -171,6 +206,6 @@ def VOLATILITY_AN(quotes, index, period=14):
 
 
 def volatility(quotes, index, period):
-    atr = ATR(quotes, index, period)
+    atr = average_true_range(quotes, index, period)
     avg = np.mean(quotes.iloc[index - period + 1: index + 1].close)
     return atr / avg

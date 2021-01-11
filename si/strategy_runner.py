@@ -56,8 +56,7 @@ class StrategyRunner(object):
             for idx in range(start_idx, end_idx):
                 if self.strategy.forward(quotes, idx, **kwargs):
                     cur_quote = quotes.iloc[idx]
-                    profit = self.profit(quotes, idx, future_window)
-                    print(f"Ticker: {symbol}, Date: {cur_quote['quote_date']:.0f}, Profit: {profit}")
+                    print(f"Ticker: {symbol}, Date: {cur_quote['quote_date']:.0f}")
 
         # close db
         self.db.close_db()
