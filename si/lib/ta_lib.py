@@ -43,6 +43,36 @@ def exp_moving_average(data_array, cur_idx, window=14):
     return ema
 
 
+def ema_list(data_array, cur_idx, lead_size, window=14):
+    """
+    A list of ema in range (cur_idx - lead_size, cur_idx]
+    Args:
+        data_array: list or ndarray.
+            Full data list.
+        cur_idx: int > 0.
+            The current index.
+        lead_size:
+
+        window: int > 0.
+            The size of observation window.
+
+    Returns:
+        A list of ema.
+    """
+    alpha = 2 / (window + 1)
+    ema = data_array[cur_idx - window - lead_size]
+    res_list = []
+
+    for idx in range(cur_idx - lead_size - window + 1, cur_idx - lead_size + 1):
+        ema = ema + alpha * (data_array[idx] - ema)
+
+    for idx in range(cur_idx - lead_size + 1, cur_idx + 1):
+        ema = ema + alpha * (data_array[idx] - ema)
+        res_list.append(ema)
+
+    return np.array(res_list)
+
+
 def true_range(quotes, cur_idx):
     """
     True Range indicator (TR), is used to indicate the true range of the trading day.
@@ -80,7 +110,8 @@ def average_true_range(quotes, cur_idx, window=14):
 
 def norm_price(quotes, cur_idx):
     """
-    Normalized Price (NP).
+    Normalized Price (NP), also known as Typical Price (TP), is the average of high price, the low price and the
+    closing price.
     Args:
         quotes: DataFrame.
             A dataframe contains the <quote_date, open, high, low, close>, and be sorted by quote_date ascending.
@@ -96,7 +127,8 @@ def norm_price(quotes, cur_idx):
 
 def money_flow_index(quotes, cur_idx, window=14):
     """
-    Average True Range (ATR), is used to simply indicate the degree of price volatility.
+    Average True Range (ATR), is an oscillator that ranges from 0 to 100. It is used to show the money flow over
+    several days.
     Args:
         quotes: DataFrame.
             A dataframe contains the <quote_date, open, high, low, close>, and be sorted by quote_date ascending.
@@ -111,22 +143,37 @@ def money_flow_index(quotes, cur_idx, window=14):
     pos_mf = 0.0
     neg_mf = 0.0
 
-    prev_np = NP(quotes, cur_idx - window)
-    for i in range(index - period + 1, index + 1):
-        cur_np = NP(quotes, i)
+    prev_np = norm_price(quotes, cur_idx - window)
+    for i in range(cur_idx - window + 1, cur_idx + 1):
+        cur_np = norm_price(quotes, i)
         if prev_np < cur_np:
-            # Positive MF
+            # positive MF
             pos_mf += quotes.iloc[i].volume * cur_np
         elif prev_np > cur_np:
-            # Negetive MF
+            # negative MF
             neg_mf += quotes.iloc[i].volume * cur_np
 
         prev_np = cur_np
 
-    if neg_mf == 0:
-        return 100
-    else:
-        return 100 - 100 / (1 + pos_mf / neg_mf)
+    return 100 * (pos_mf / (pos_mf + neg_mf))
+
+
+def mass_index(quotes, cur_idx, window=25):
+    ''' Mass Index '''
+    EMA_PERIOD = 9
+
+    try:
+
+        high_low_diff = quotes.high - quotes.low
+        high_low_diff = high_low_diff[0: index + 1]
+        # single_ema list including (period + EMA_PERIOD) elements
+
+        single_ema_list = EMA_LIST(high_low_diff, EMA_PERIOD)[EMA_PERIOD:]
+        double_ema_list = EMA_LIST(single_ema_list, EMA_PERIOD)
+
+        return np.sum(single_ema_list[-period:] / double_ema_list[-period:])
+    except:
+        return None
 
 
 # ---------------------------------- Customize Indicator ----------------------------
@@ -154,22 +201,7 @@ def angular(quotes, cur_idx, side_window=5):
         return False
 
 
-def MI(quotes, index, period=25):
-    ''' Mass Index '''
-    EMA_PERIOD = 9
 
-    try:
-
-        high_low_diff = quotes.high - quotes.low
-        high_low_diff = high_low_diff[0: index + 1]
-        # single_ema list including (period + EMA_PERIOD) elements
-
-        single_ema_list = EMA_LIST(high_low_diff, EMA_PERIOD)[EMA_PERIOD:]
-        double_ema_list = EMA_LIST(single_ema_list, EMA_PERIOD)
-
-        return np.sum(single_ema_list[-period:] / double_ema_list[-period:])
-    except:
-        return None
 
 
 def is_reverse_bulge(quotes, index):
