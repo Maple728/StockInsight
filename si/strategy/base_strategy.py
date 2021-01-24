@@ -17,14 +17,16 @@ class BaseStrategy(ABC):
 
     def forward(self, quotes, cur_idx, **kwargs):
         """
-
+        Run strategy at the cur_idx of quotes.
         Args:
-            quotes:
-            cur_idx:
+            quotes: DataFrame.
+                A dataframe contains the <quote_date, open, high, low, close>, and be sorted by quote_date ascending.
+            cur_idx: int > 0.
+                The current index.
             **kwargs:
 
         Returns:
-
+            A bool, true if the signal is met, false otherwise.
         """
         if self.filter_quotes(quotes, cur_idx, **kwargs) and self.apply_strategy(quotes, cur_idx, **kwargs):
             return True
@@ -32,6 +34,18 @@ class BaseStrategy(ABC):
             return False
 
     def filter_quotes(self, quotes, cur_idx, **kwargs):
+        """
+        Apply a basely filter on quotes.
+        Args:
+            quotes: DataFrame.
+                A dataframe contains the <quote_date, open, high, low, close>, and be sorted by quote_date ascending.
+            cur_idx: int > 0.
+                The current index.
+            **kwargs:
+
+        Returns:
+            A bool, true if the signal is met, false otherwise.
+        """
         ob_window = self.base_filter_config['ob_window']
         min_price = self.base_filter_config['min_price']
         min_volume = self.base_filter_config['min_volume']
@@ -55,6 +69,18 @@ class BaseStrategy(ABC):
 
     @abstractmethod
     def apply_strategy(self, quotes, cur_idx, **kwargs):
+        """
+        Apply the strategy to exploit the trading signal.
+        Args:
+            quotes: DataFrame.
+                A dataframe contains the <quote_date, open, high, low, close>, and be sorted by quote_date ascending.
+            cur_idx: int > 0.
+                The current index.
+            **kwargs:
+
+        Returns:
+            A bool, true if the signal is met, false otherwise.
+        """
         pass
 
     @abstractmethod

@@ -23,8 +23,8 @@ def main(args):
     # run strategy
     strategy = BigSpikeStrategy(config)
     runner = StrategyRunner(strategy, config)
-    # runner.back_test(past_ob_window=100, future_window=20)
-    runner.run()
+    runner.back_test(past_ob_window=100, future_window=20)
+    # runner.run(past_ob_window=5)
 
 
 if __name__ == '__main__':

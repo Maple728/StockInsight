@@ -8,11 +8,11 @@ data:
 base_filter:
   ob_window: 100
   min_price: 1.0
-  min_volume: 10000
+  min_volume: 100000
 
 strategy:
   bigspike:
     ob_window: 50
-    rule_3_volume: 300000
+    rule_3_volume: 1000000
     rule_8_horizon: 3
     rule_8_volume_multiple: 3

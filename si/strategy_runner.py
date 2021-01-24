@@ -41,12 +41,11 @@ class StrategyRunner(object):
 
         return
 
-    def run(self, **kwargs):
+    def run(self, past_ob_window=5, **kwargs):
         # connect db
         self.db.connect()
 
         for company, quotes in self.db.get_all_company_quotes_iterator():
-            past_ob_window = 5
             future_window = self.strategy.future_length
 
             symbol = company['symbol']
