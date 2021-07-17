@@ -8,7 +8,7 @@ data:
 base_filter:
   ob_window: 100
   min_price: 1.0
-  min_volume: 100000
+  min_volume: 500000
 
 strategy:
   bigspike:

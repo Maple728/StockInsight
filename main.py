@@ -9,8 +9,8 @@
 import argparse
 import yaml
 
-from si.lib.db_operation import DBService
 from si.strategy.bigspike_strategy import BigSpikeStrategy
+from si.strategy.stable_break_strategy import StableBreakStrategy
 from si.strategy_runner import StrategyRunner
 
 
@@ -21,10 +21,12 @@ def main(args):
         config = yaml.load(config_file, Loader=yaml.FullLoader)
 
     # run strategy
-    strategy = BigSpikeStrategy(config)
+    # strategy = BigSpikeStrategy(config)
+    strategy = StableBreakStrategy(config)
+
     runner = StrategyRunner(strategy, config)
-    runner.back_test(past_ob_window=100, future_window=20)
-    # runner.run(past_ob_window=20)
+    # runner.back_test(past_ob_window=100, future_window=20)
+    runner.run(past_ob_window=20)
 
 
 if __name__ == '__main__':

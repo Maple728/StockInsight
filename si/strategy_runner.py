@@ -26,7 +26,10 @@ class StrategyRunner(object):
         self.db.connect()
 
         for company, quotes in self.db.get_all_company_quotes_iterator():
+            if self._filter_company(company):
+                continue
             symbol = company['symbol']
+
             len_quotes = len(quotes)
             start_idx = max(len_quotes - past_ob_window - future_window, 0)
             end_idx = max(len_quotes - future_window, 0)
@@ -46,7 +49,9 @@ class StrategyRunner(object):
         self.db.connect()
 
         for company, quotes in self.db.get_all_company_quotes_iterator():
-            future_window = self.strategy.future_length
+            if self._filter_company(company):
+                continue
+            future_window = self.strategy.get_future_length()
 
             symbol = company['symbol']
             len_quotes = len(quotes)
@@ -74,3 +79,9 @@ class StrategyRunner(object):
         hold_roi = (last_price / entry_price) - 1
 
         return f'low_roi: {low_roi:.2f}, high_roi: {high_roi:.2f}, hold_roi: {hold_roi:.2f}'
+
+    def _filter_company(self, company):
+        if company['sector'] in ['Healthcare']:
+            return True
+
+        return False

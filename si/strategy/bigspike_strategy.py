@@ -28,12 +28,10 @@ class BigSpikeStrategy(BaseStrategy):
         self.rule_8_horizon = strategy_config['rule_8_horizon']
         self.rule_8_volume_multiple = strategy_config['rule_8_volume_multiple']
 
-    @property
-    def context_length(self):
+    def get_context_length(self):
         return self.ob_window
 
-    @property
-    def future_length(self):
+    def get_future_length(self):
         # return self.rule_8_horizon
         return 0
 

@@ -57,7 +57,7 @@ def ema_list(data_array, cur_idx, lead_size, window=14):
             The size of observation window.
 
     Returns:
-        A list of ema.
+        A list of ema: shape -> [lead_size]
     """
     alpha = 2 / (window + 1)
     ema = data_array[cur_idx - window - lead_size]
@@ -159,19 +159,29 @@ def money_flow_index(quotes, cur_idx, window=14):
 
 
 def mass_index(quotes, cur_idx, window=25):
-    ''' Mass Index '''
-    EMA_PERIOD = 9
+    """
+    Mass Index.
+
+    Args:
+        quotes:
+        cur_idx:
+        window:
+
+    Returns:
+
+    """
+    ema_period = 9
 
     try:
 
         high_low_diff = quotes.high - quotes.low
-        high_low_diff = high_low_diff[0: index + 1]
+        high_low_diff = high_low_diff[0: cur_idx + 1]
         # single_ema list including (period + EMA_PERIOD) elements
 
-        single_ema_list = EMA_LIST(high_low_diff, EMA_PERIOD)[EMA_PERIOD:]
-        double_ema_list = EMA_LIST(single_ema_list, EMA_PERIOD)
+        single_ema_list = ema_list(high_low_diff, cur_idx, ema_period)[ema_period:]
+        double_ema_list = ema_list(single_ema_list, cur_idx, ema_period)
 
-        return np.sum(single_ema_list[-period:] / double_ema_list[-period:])
+        return np.sum(single_ema_list[-window:] / double_ema_list[-window:])
     except:
         return None
 
@@ -199,9 +209,6 @@ def angular(quotes, cur_idx, side_window=5):
         return True
     else:
         return False
-
-
-
 
 
 def is_reverse_bulge(quotes, index):

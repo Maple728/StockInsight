@@ -65,6 +65,9 @@ class BaseStrategy(ABC):
         if np.mean(period_quotes.volume) < min_volume:
             return False
 
+        if np.max(period_quotes.close) / np.min(period_quotes.close) < 1.4:
+            return False
+
         return True
 
     @abstractmethod
@@ -84,9 +87,9 @@ class BaseStrategy(ABC):
         pass
 
     @abstractmethod
-    def context_length(self):
+    def get_context_length(self):
         pass
 
     @abstractmethod
-    def future_length(self):
+    def get_future_length(self):
         pass
